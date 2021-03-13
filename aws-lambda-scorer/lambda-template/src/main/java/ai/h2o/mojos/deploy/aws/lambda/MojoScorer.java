@@ -35,21 +35,24 @@ public final class MojoScorer {
   public ScoreResponse score(ScoreRequest request, Context context)
       throws IOException, LicenseException, ScoreRequestFormatException {
     LambdaLogger logger = context.getLogger();
-    logger.log("Got scoring request");
+    String awsRequestId = context.getAwsRequestId();
+    logger.log(String.format("%s Got scoring request", awsRequestId));
     MojoPipeline mojoPipeline = getMojoPipeline(logger);
     requestChecker.verify(request, mojoPipeline.getInputMeta());
-    logger.log("Scoring request verified");
+    logger.log(String.format("%s Scoring request verified", awsRequestId));
     MojoFrame requestFrame = requestConverter.apply(request, mojoPipeline.getInputFrameBuilder());
     logger.log(
         String.format(
-            "Input has %d rows, %d columns: %s",
+            "%s Input has %d rows, %d columns: %s",
+            awsRequestId,
             requestFrame.getNrows(),
             requestFrame.getNcols(),
             Arrays.toString(requestFrame.getColumnNames())));
     MojoFrame responseFrame = mojoPipeline.transform(requestFrame);
     logger.log(
         String.format(
-            "Response has %d rows, %d columns: %s",
+            "%s Response has %d rows, %d columns: %s",
+            awsRequestId,
             responseFrame.getNrows(),
             responseFrame.getNcols(),
             Arrays.toString(responseFrame.getColumnNames())));
