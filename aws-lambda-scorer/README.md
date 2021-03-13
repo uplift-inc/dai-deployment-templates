@@ -124,6 +124,8 @@ The expected response should follow this structure, but the actual values may di
 
 ```json
 {
+  "fingerprint":"b613f34942729aa068c90ce637b91eb7",
+  "tag":"6a0b27d3e96b4df03a188f3fe7b06e33230e4171",
   "id": "a12e7390-b8ac-406a-ade9-0d5ea4b63ea9",
   "fields": [
     "sepal_len",
