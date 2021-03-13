@@ -24,6 +24,15 @@ injected into the zip archive after the fact.
 The Scorer relies on the following environment variable:
 * `DRIVERLESS_AI_LICENSE_KEY`: The Driverless license key.
 
+The scorer will also inject the following environment variables, if present:
+* `MOJO_FINGERPRINT`: The (currently unused) MD5 Sum of the `pipeline.mojo`
+* `TAG`: External tracking tag, such as a version control ID
+
+The Scorer will inject these values into the score response with the `fingerprint` 
+and `tag` JSON fields (respectively) so that the exact version from Version Control 
+that was used for each scoring event can be tracked.  If the values are not present, 
+the values "TEST" and "LOCAL" (respectively) will be used for those fields.
+
 ## Pushing to AWS Using Terraform
 
 This deployment template is meant to be used by Driverless AI backend directly,

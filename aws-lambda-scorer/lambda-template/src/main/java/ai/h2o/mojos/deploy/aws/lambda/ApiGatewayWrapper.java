@@ -30,6 +30,9 @@ public class ApiGatewayWrapper
     implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
   private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
   private final MojoScorer mojoScorer = new MojoScorer();
+  //Mojo MD5 fingerprint and Version Control Tag for tracking
+  private static final String tag = System.getenv().getOrDefault("TAG", "LOCAL");
+  private static final String mojoMD5 = System.getenv().getOrDefault("MOJO_FINGERPRINT", "TEST");
 
   @Override
   public APIGatewayProxyResponseEvent handleRequest(
@@ -79,7 +82,15 @@ public class ApiGatewayWrapper
                 exceptionAsString, example));
   }
 
+  private static String injectTracking(String body) {
+    //Yes, this is a hack, but we don't want to mess with h2oai's ScoreResponse class
+    String injectedString = String.format(
+        "{\n  \"fingerprint\":\"%s\",\n  \"tag\":\"%s\",%s\n", mojoMD5, tag, body.substring(1));
+    return injectedString;
+  }
+
   private static APIGatewayProxyResponseEvent toSuccessResponse(String body) {
-    return new APIGatewayProxyResponseEvent().withStatusCode(HttpStatus.SC_OK).withBody(body);
+    return new APIGatewayProxyResponseEvent()
+        .withStatusCode(HttpStatus.SC_OK).withBody(injectTracking(body));
   }
 }
