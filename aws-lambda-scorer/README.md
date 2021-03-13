@@ -13,11 +13,16 @@ The code of the AWS Lambda scorer is a gradle project build as usual by
 `lambda-template/build/distributions/lambda-template.zip` containing a general
 Mojo scorer that can be directly pushed to AWS.
 
-The Scorer relies on the following environment variables:
-* `DEPLOYMENT_S3_BUCKET_NAME`: Name of the AWS S3 bucket storing the Mojo file.
-* `MOJO_S3_OBJECT_KEY`: Key of Mojo file AWS S3 object.
-* `DRIVERLESS_AI_LICENSE_KEY`: The Driverless license key.
+Unlike the H2O Scorer this was forked from, this scorer packages the Mojo with the 
+Lambda Wrapper Code.  This is better aligned with our CICD pipeline at Uplift.  To 
+achieve that, the **build is packaged expecting a file named `pipeline.mojo` to be 
+present in the root directory of `lambda-template.zip`**.  While the filename could 
+have been made configurable, it was easy enough to manipulate artifacts in our build 
+pipeline to avoid any confusion due to paths.  The `pipeline.mojo` file must be 
+injected into the zip archive after the fact.
 
+The Scorer relies on the following environment variable:
+* `DRIVERLESS_AI_LICENSE_KEY`: The Driverless license key.
 
 ## Pushing to AWS Using Terraform
 

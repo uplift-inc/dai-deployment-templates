@@ -14,9 +14,6 @@ import ai.h2o.mojos.runtime.readers.MojoPipelineReaderBackendFactory;
 import ai.h2o.mojos.runtime.readers.MojoReaderBackend;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3Object;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -24,14 +21,9 @@ import java.util.Arrays;
 /*
  * AWS lambda request handler that implements scoring using a H2O DAI mojo.
  *
- * <p>The scorer code is shared for all mojo deployments and is only parameterized by environment
- * variables that define, e.g., the location of the mojo file in AWS S3.
+ * <p>The scorer code is shared for all mojo deployments but is repackaged with each deployment.
  */
 public final class MojoScorer {
-  private static final String DEPLOYMENT_S3_BUCKET_NAME =
-      System.getenv("DEPLOYMENT_S3_BUCKET_NAME");
-  private static final String MOJO_S3_OBJECT_KEY = System.getenv("MOJO_S3_OBJECT_KEY");
-  private static final AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
   private static final Object pipelineLock = new Object();
   private static MojoPipeline pipeline;
 
@@ -71,22 +63,17 @@ public final class MojoScorer {
       throws IOException, LicenseException {
     synchronized (pipelineLock) {
       if (pipeline == null) {
-        pipeline = loadMojoPipelineFromS3(logger);
+        pipeline = loadMojoPipelineFromLocalFile(logger);
       }
       return pipeline;
     }
   }
 
-  private static MojoPipeline loadMojoPipelineFromS3(LambdaLogger logger)
+  private static MojoPipeline loadMojoPipelineFromLocalFile(LambdaLogger logger)
       throws IOException, LicenseException {
-    try (S3Object s3Object = s3Client.getObject(DEPLOYMENT_S3_BUCKET_NAME, MOJO_S3_OBJECT_KEY);
-        InputStream mojoInput = s3Object.getObjectContent()) {
-      logger.log(
-          String.format(
-              "Loading Mojo pipeline from S3 object %s/%s",
-              DEPLOYMENT_S3_BUCKET_NAME, MOJO_S3_OBJECT_KEY));
-      MojoReaderBackend mojoReaderBackend =
-          MojoPipelineReaderBackendFactory.createReaderBackend(mojoInput);
+    logger.log("Loading Mojo from Lambda Deployment Zip");
+    try (MojoReaderBackend mojoReaderBackend =
+        MojoPipelineReaderBackendFactory.createReaderBackend("pipeline.mojo")) {
       MojoPipeline mojoPipeline = MojoPipeline.loadFrom(mojoReaderBackend);
       logger.log(String.format("Mojo pipeline successfully loaded (%s).", mojoPipeline.getUuid()));
       return mojoPipeline;
