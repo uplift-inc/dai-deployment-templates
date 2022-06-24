@@ -25,11 +25,24 @@ import java.util.Arrays;
  */
 public final class MojoScorer {
   private static final Object pipelineLock = new Object();
+  private static final InitializationLogger logger = new InitializationLogger();
   private static MojoPipeline pipeline;
+
+  static {
+    try {
+      pipeline = getMojoPipeline(logger);
+    } catch (IOException | LicenseException e) {
+      throw new RuntimeException(e);
+    }
+  };
 
   private final RequestToMojoFrameConverter requestConverter = new RequestToMojoFrameConverter();
   private final MojoFrameToResponseConverter responseConverter = new MojoFrameToResponseConverter();
   private final RequestChecker requestChecker = new RequestChecker(new SampleRequestBuilder());
+
+  public MojoScorer() throws LicenseException, IOException {
+  }
+
 
   /** Processes a single {@link ScoreRequest} in the given AWS Lambda {@link Context}. */
   public ScoreResponse score(ScoreRequest request, Context context)
