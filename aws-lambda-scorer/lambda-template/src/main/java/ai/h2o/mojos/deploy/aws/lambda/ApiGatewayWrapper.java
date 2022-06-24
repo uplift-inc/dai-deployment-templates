@@ -34,6 +34,9 @@ public class ApiGatewayWrapper
   private static final String tag = System.getenv().getOrDefault("TAG", "LOCAL");
   private static final String mojoMD5 = System.getenv().getOrDefault("MOJO_FINGERPRINT", "TEST");
 
+  public ApiGatewayWrapper() throws LicenseException, IOException {
+  }
+
   @Override
   public APIGatewayProxyResponseEvent handleRequest(
       APIGatewayProxyRequestEvent input, Context context) {
